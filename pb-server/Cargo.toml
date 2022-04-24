@@ -1,0 +1,16 @@
+[package]
+name = "pb-server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+redis = { version = "0.21", features = ["tokio-comp"] }
+tower = { version = "0.4", features = ["full"] }
+tower-http = { version = "0.2", features = ["full"] }
+axum = { version = "0.5", features = ["default", "ws"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1" }
+tracing = { version = "0.1" }
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+flate2 = { version = "1.0" }
