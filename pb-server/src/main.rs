@@ -1,3 +1,5 @@
+pub mod services;
+
 use axum::{
     extract::Extension,
     http::StatusCode,
@@ -7,10 +9,13 @@ use axum::{
 use std::{io::Write, net::SocketAddr, sync::Arc};
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
 
+use services::CanvasService;
+
 type RouteResult<T, E> = Result<(StatusCode, T), (StatusCode, E)>;
 
 pub struct AppState {
-    redis_client: Arc<redis::Client>,
+    pub canvas_service: CanvasService,
+    pub redis_client: redis::Client,
 }
 
 #[derive(serde::Deserialize)]
@@ -25,8 +30,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let client = redis::Client::open("redis://localhost:6379")?;
 
+    let canvas_service = CanvasService::new(client.clone());
+
     let state = Arc::new(AppState {
-        redis_client: Arc::new(client),
+        redis_client: client.clone(),
+        canvas_service,
     });
 
     let app = Router::new()
@@ -42,7 +50,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .layer(Extension(state));
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
     tracing::debug!("listening on {}", addr);
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
@@ -59,7 +67,7 @@ async fn root() -> RouteResult<String, String> {
 async fn get_canvas(Extension(state): Extension<Arc<AppState>>) -> RouteResult<Vec<u8>, String> {
     let mut encoder = flate2::write::ZlibEncoder::new(Vec::new(), flate2::Compression::default());
 
-    let canvas = match canvas_service::get_canvas(&state.redis_client).await {
+    let canvas = match state.canvas_service.get_canvas().await {
         Ok(res) => res,
         Err(_) => {
             return Err((
@@ -95,7 +103,11 @@ async fn put_pixel(
     }
 
     // Put a pixel
-    match canvas_service::put_pixel(&state.redis_client, payload.position, payload.color).await {
+    match state
+        .canvas_service
+        .put_pixel(payload.position, payload.color)
+        .await
+    {
         Ok(_) => (),
         Err(err) => {
             return Err((
@@ -106,29 +118,4 @@ async fn put_pixel(
     };
 
     Ok((StatusCode::ACCEPTED, ()))
-}
-
-mod canvas_service {
-    pub async fn get_canvas(client: &redis::Client) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-        Ok(redis::cmd("GETRANGE")
-            .arg("canvas")
-            .arg(&[0, -1])
-            .query_async(&mut client.get_async_connection().await?)
-            .await?)
-    }
-
-    pub async fn put_pixel(
-        client: &redis::Client,
-        pos: i64,
-        color: i32,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        Ok(redis::cmd("BITFIELD")
-            .arg("canvas")
-            .arg("SET")
-            .arg("u24")
-            .arg(pos * 24)
-            .arg(color)
-            .query_async(&mut client.get_async_connection().await?)
-            .await?)
-    }
 }
