@@ -9,7 +9,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for i in 0..1000 {
         for j in 0..1000 {
-            let val = if (i + j) % 2 == 0 { 0x000000 } else { 0xFFFFFF };
+            let val = 0xFFFFFF;
 
             redis::cmd("BITFIELD")
                 .arg("canvas")
