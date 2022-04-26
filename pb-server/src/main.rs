@@ -1,15 +1,13 @@
+pub mod routes;
 pub mod services;
+pub mod utils;
 
 use axum::{
-    extract::{
-        ws::{self, WebSocket},
-        Extension, WebSocketUpgrade,
-    },
     http::StatusCode,
     routing::{get, put},
-    Json, Router,
+    Extension, Router,
 };
-use std::{io::Write, net::SocketAddr, sync::Arc};
+use std::{net::SocketAddr, sync::Arc};
 use tokio::{
     sync::broadcast,
     task,
@@ -17,12 +15,12 @@ use tokio::{
 };
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use utils::compress_canvas;
 
 use services::CanvasService;
 
-type RouteResult<T, E> = Result<(StatusCode, T), (StatusCode, E)>;
-type Canvas = Vec<u8>;
-
+pub type RouteResult<T, E> = Result<(StatusCode, T), (StatusCode, E)>;
+pub type Canvas = Vec<u8>;
 pub struct AppState {
     pub canvas_service: CanvasService,
     pub redis_client: redis::Client,
@@ -35,25 +33,23 @@ pub struct PutPixelData {
     pub color: i32,
 }
 
-async fn send_canvas(service: &CanvasService, tx: &broadcast::Sender<Canvas>) {
-    let res = service.get_canvas().await;
-    if res.is_err() {
-        return;
+async fn canvas_stream_worker(service: CanvasService, tx: broadcast::Sender<Canvas>) {
+    let mut int = interval(Duration::from_secs(1));
+    loop {
+        let res = service.get_canvas().await;
+        if res.is_err() {
+            return;
+        }
+        tx.send(compress_canvas(res.unwrap())).unwrap();
+        int.tick().await;
     }
-    tx.send(compress_canvas(res.unwrap())).unwrap();
-}
-
-fn compress_canvas(canvas: Canvas) -> Canvas {
-    let mut encoder = flate2::write::ZlibEncoder::new(Vec::new(), flate2::Compression::default());
-    encoder.write_all(&canvas).unwrap();
-    encoder.finish().unwrap()
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::new(
-            std::env::var("RUST_LOG").unwrap_or_else(|_| "example_chat=trace".into()),
+            std::env::var("RUST_LOG").unwrap_or_else(|_| "pb-server=trace".into()),
         ))
         .with(tracing_subscriber::fmt::layer())
         .init();
@@ -62,15 +58,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let canvas_service = CanvasService::new(redis_client.clone());
     let (tx, _rx) = broadcast::channel(2048);
 
-    let cs = canvas_service.clone();
-    let ntx = tx.clone();
-    task::spawn(async move {
-        let mut int = interval(Duration::from_secs(1));
-        loop {
-            send_canvas(&cs, &ntx).await;
-            int.tick().await;
-        }
-    });
+    task::spawn(canvas_stream_worker(canvas_service.clone(), tx.clone()));
 
     let state = Arc::new(AppState {
         canvas_service: canvas_service.clone(),
@@ -79,10 +67,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     let app = Router::new()
-        .route("/", get(root))
-        .route("/pixels", get(get_canvas))
-        .route("/pixels", put(put_pixel))
-        .route("/pixels/stream", get(stream_canvas))
+        .route("/", get(routes::root))
+        .route("/pixels", get(routes::pixels::get_canvas))
+        .route("/pixels", put(routes::pixels::put_pixel))
+        .route("/pixels/stream", get(routes::pixels::stream_canvas))
         .layer(TraceLayer::new_for_http())
         .layer(
             CorsLayer::new()
@@ -100,76 +88,4 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap();
 
     Ok(())
-}
-
-async fn root() -> RouteResult<String, String> {
-    Ok((StatusCode::OK, "It works!".to_string()))
-}
-
-async fn stream_canvas(
-    ws: WebSocketUpgrade,
-    Extension(state): Extension<Arc<AppState>>,
-) -> impl axum::response::IntoResponse {
-    ws.on_upgrade(move |s| handle_socket(s, state))
-}
-
-async fn handle_socket(mut socket: WebSocket, state: Arc<AppState>) {
-    let mut st = state.canvas_stream.subscribe();
-    while let Ok(c) = st.recv().await {
-        if socket.send(ws::Message::Binary(c)).await.is_err() {
-            return;
-        }
-    }
-}
-
-async fn get_canvas(Extension(state): Extension<Arc<AppState>>) -> RouteResult<Canvas, String> {
-    let canvas = match state.canvas_service.get_canvas().await {
-        Ok(res) => res,
-        Err(_) => {
-            return Err((
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Get canvas error".to_string(),
-            ))
-        }
-    };
-
-    Ok((StatusCode::OK, compress_canvas(canvas)))
-}
-
-async fn put_pixel(
-    Json(payload): Json<PutPixelData>,
-    Extension(state): Extension<Arc<AppState>>,
-) -> RouteResult<(), String> {
-    // Verify position
-    if !(payload.position >= 0 && payload.position < 1_000_000) {
-        return Err((
-            StatusCode::BAD_REQUEST,
-            "Position should be >= 0 and < 10000000".to_string(),
-        ));
-    }
-
-    // Verify color
-    if !(payload.color >= 0x000000 && payload.color <= 0xFFFFFF) {
-        return Err((
-            StatusCode::BAD_REQUEST,
-            "Color should be >= 0x000000 and <= 0xFFFFFF".to_string(),
-        ));
-    }
-
-    // Put a pixel
-    match state
-        .canvas_service
-        .put_pixel(payload.position, payload.color)
-        .await
-    {
-        Ok(_) => (),
-        Err(err) => {
-            return Err((
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Failed to put a pixel: ".to_owned() + &err.to_string(),
-            ))
-        }
-    };
-
-    Ok((StatusCode::ACCEPTED, ()))
 }
