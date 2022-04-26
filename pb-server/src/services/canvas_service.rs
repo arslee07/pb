@@ -1,3 +1,5 @@
+use std::error::Error;
+
 #[derive(Clone)]
 pub struct CanvasService {
     redis_client: redis::Client,
@@ -8,7 +10,7 @@ impl CanvasService {
         CanvasService { redis_client }
     }
 
-    pub async fn get_canvas(&self) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    pub async fn get_canvas(&self) -> Result<Vec<u8>, Box<dyn Error + Sync + Send>> {
         Ok(redis::cmd("GETRANGE")
             .arg("canvas")
             .arg(&[0, -1])
@@ -16,7 +18,7 @@ impl CanvasService {
             .await?)
     }
 
-    pub async fn put_pixel(&self, pos: i64, color: i32) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn put_pixel(&self, pos: i64, color: i32) -> Result<(), Box<dyn Error>> {
         Ok(redis::cmd("BITFIELD")
             .arg("canvas")
             .arg("SET")
@@ -27,7 +29,7 @@ impl CanvasService {
             .await?)
     }
 
-    pub async fn get_pixel(&self, pos: i64) -> Result<i32, Box<dyn std::error::Error>> {
+    pub async fn get_pixel(&self, pos: i64) -> Result<i32, Box<dyn Error>> {
         Ok(redis::cmd("BITFIELD")
             .arg("canvas")
             .arg("GET")
