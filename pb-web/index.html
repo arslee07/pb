@@ -29,18 +29,41 @@
         min-height: 0;
     }
 
+    .no-highlights {
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+
+
+    #view-layer {
+        position: absolute;
+        z-index: 1;
+
+        transform-origin: top left;
+        transform: scale(15, 15);
+    }
+
+    #interaction-layer {
+        position: absolute;
+        z-index: 2;
+
+        transform-origin: top left;
+        transform: scale(15, 15);
+        cursor: pointer;
+    }
+
     #paper-wrapper {
+        position: relative;
         display: flex;
         width: 100%;
         overflow-y: auto;
-    }
-
-    #paper {
-        transform-origin: top left;
-        margin: auto;
-        transform: scale(15, 15);
         image-rendering: pixelated;
-        box-shadow: 0px 0px 16px black;
+        /* box-shadow: 0px 0px 16px black; */
     }
 </style>
 
@@ -50,12 +73,13 @@
         <div class="content">
             <div id="paper-wrapper">
                 <div>
-                    <canvas width="1000" height="1000" id="paper"></canvas>
+                    <canvas width="1000" height="1000" id="view-layer" class="no-highlights"></canvas>
+                    <canvas width="1000" height="1000" id="interaction-layer" class="no-highlights"></canvas>
                 </div>
             </div>
         </div>
         <div style="background-color: lightgrey; padding: 1rem">
-            <span>*bottom menu*</span>
+            <span id="coords">X: N/A | Y: N/A</span>
         </div>
     </div>
 
