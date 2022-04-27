@@ -35,7 +35,9 @@ var hold = { left: false, right: false, down: false, up: false, speed: false };
 function kbscroll() {
     let topd = (hold.down * 25 * (hold.speed ? 3 : 1)) + (hold.up * -25 * (hold.speed ? 3 : 1))
     let leftd = (hold.right * 25 * (hold.speed ? 3 : 1)) + (hold.left * -25 * (hold.speed ? 3 : 1))
-    wrapper.scrollTo(wrapper.scrollLeft + leftd, wrapper.scrollTop + topd);
+    if (topd != 0 || leftd != 0) {
+        wrapper.scrollTo(wrapper.scrollLeft + leftd, wrapper.scrollTop + topd);
+    }
     window.requestAnimationFrame(kbscroll);
 }
 window.requestAnimationFrame(kbscroll);
