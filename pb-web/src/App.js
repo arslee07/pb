@@ -1,10 +1,13 @@
 import { React, useCallback, useState } from 'react';
-import { Button, ButtonGroup, Col } from 'react-bootstrap';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import ViewCanvas from './components/ViewCanvas';
 import InteractionCanvas from './components/InteractionCanvas';
-import { ZoomIn, ZoomOut } from 'react-bootstrap-icons';
+import { Button, ButtonGroup } from 'react-bootstrap';
+import { BlockPicker } from 'react-color';
+import { List, ZoomIn, ZoomOut, Eyedropper } from 'react-bootstrap-icons';
+
+const zooms = [1, 2, 5, 10, 15, 25, 50];
 
 function App() {
   const [coords, setCoords] = useState({ x: 0, y: 0 });
@@ -13,24 +16,33 @@ function App() {
     setCoords({ x: x, y: y })
   }, []);
 
-  const [zoom, setZoom] = useState(15);
+  const [zoomIndex, setZoomIndex] = useState(0);
 
   return (
-    <div className='h-100 d-flex flex-column overflow-hidden'>
-
-      <div className='d-flex flex-grow-1' style={{ minHeight: '0' }}>
-        <div id="paper-wrapper" className="position-relative d-flex w-100 overflow-auto" style={{ imageRendering: "pixelated" }}>
-          <div>
-            <ViewCanvas zoom={zoom} />
-            <InteractionCanvas onCoordsChanged={handleCoordsChange} zoom={zoom} />
-          </div>
+    <div className='h-100'>
+      <div id="paper-wrapper" className="position-relative overflow-auto h-100 d-flex w-100" style={{ imageRendering: "pixelated" }}>
+        <div>
+          <ViewCanvas zoom={zooms[zoomIndex]} />
+          <InteractionCanvas onCoordsChanged={handleCoordsChange} zoom={zooms[zoomIndex]} />
         </div>
       </div>
-
-      <div style={{ backgroundColor: "lightgrey", padding: "1rem" }}>
-        <span>X: {coords.x} | Y: {coords.y}</span>
+      <div>
+        <div className='position-absolute ms-2 mt-2 mx-auto' style={{ zIndex: "3", left: "0", top: "0" }}>
+          <div class="py-1 px-2 rounded mb-2 bg-primary text-white">({coords.x}; {coords.y}) x{zooms[zoomIndex]}</div>
+        </div>
+        <div className='position-absolute me-2 mb-2' style={{ zIndex: "3", right: "0", bottom: "0" }}>
+          <ButtonGroup>
+            <Button onClick={() => setZoomIndex(Math.min(zoomIndex + 1, zooms.length - 1))}><ZoomIn /></Button>
+            <Button onClick={() => setZoomIndex(Math.max(zoomIndex - 1, 0))}><ZoomOut /></Button>
+          </ButtonGroup>
+        </div>
+        <div className='position-absolute me-2 mt-2' style={{ zIndex: "3", right: "0", top: "0" }}>
+          <Button><List /></Button>
+        </div>
+        <div className='position-absolute ms-2 mb-2' style={{ zIndex: "3", left: "0", bottom: "0" }}>
+          <Button><Eyedropper /></Button>
+        </div>
       </div>
-
     </div >
   );
 }

@@ -72,7 +72,7 @@ export default function InteractionCanvas(props) {
         className="no-highlights position-absolute"
         ref={interactionRef}
         style={{
-            zIndex: "2",
+            zIndex: "1",
             transformOrigin: "top left",
             transform: `scale(${props.zoom}, ${props.zoom})`
         }}
