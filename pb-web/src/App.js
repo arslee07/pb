@@ -27,19 +27,19 @@ function App() {
         </div>
       </div>
       <div>
-        <div className='position-absolute ms-2 mt-2 mx-auto' style={{ zIndex: "3", left: "0", top: "0" }}>
+        <div className='position-absolute ms-md-2 mt-md-2 ms-2 mt-2 mx-auto' style={{ zIndex: "3", left: "0", top: "0" }}>
           <div class="py-1 px-2 rounded mb-2 bg-primary text-white">({coords.x}; {coords.y}) x{zooms[zoomIndex]}</div>
         </div>
-        <div className='position-absolute me-2 mb-2' style={{ zIndex: "3", right: "0", bottom: "0" }}>
+        <div className='position-absolute me-md-4 mb-md-4 me-2 mb-2' style={{ zIndex: "3", right: "0", bottom: "0" }}>
           <ButtonGroup>
             <Button onClick={() => setZoomIndex(Math.min(zoomIndex + 1, zooms.length - 1))}><ZoomIn /></Button>
             <Button onClick={() => setZoomIndex(Math.max(zoomIndex - 1, 0))}><ZoomOut /></Button>
           </ButtonGroup>
         </div>
-        <div className='position-absolute me-2 mt-2' style={{ zIndex: "3", right: "0", top: "0" }}>
+        <div className='position-absolute me-md-4 mt-md-2 me-2 mt-2' style={{ zIndex: "3", right: "0", top: "0" }}>
           <Button><List /></Button>
         </div>
-        <div className='position-absolute ms-2 mb-2' style={{ zIndex: "3", left: "0", bottom: "0" }}>
+        <div className='position-absolute ms-md-2 mb-md-4 ms-2 mb-2' style={{ zIndex: "3", left: "0", bottom: "0" }}>
           <Button><Eyedropper /></Button>
         </div>
       </div>
