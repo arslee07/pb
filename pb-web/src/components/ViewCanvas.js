@@ -44,10 +44,9 @@ export default function ViewCanvas(props) {
         width={1000}
         height={1000}
         id="view-layer"
-        className="no-highlights"
+        className="no-highlights position-absolute"
         ref={ref}
         style={{
-            position: "absolute",
             zIndex: "1",
             transformOrigin: "top left",
             transform: `scale(${props.zoom}, ${props.zoom})`

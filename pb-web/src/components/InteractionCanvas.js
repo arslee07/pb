@@ -69,10 +69,9 @@ export default function InteractionCanvas(props) {
         width={1000}
         height={1000}
         id="interaction-layer"
-        className="no-highlights"
+        className="no-highlights position-absolute"
         ref={interactionRef}
         style={{
-            position: "absolute",
             zIndex: "2",
             transformOrigin: "top left",
             transform: `scale(${props.zoom}, ${props.zoom})`
