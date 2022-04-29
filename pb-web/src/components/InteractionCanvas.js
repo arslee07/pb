@@ -17,16 +17,6 @@ function drawPointer(x, y, imageData, ctx) {
     ctx.putImageData(imageData, x, y);
 }
 
-async function placePixel(x, y) {
-    await fetch('http://192.168.0.123:4000/pixels', {
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        method: 'PUT',
-        body: JSON.stringify({ position: y * 1000 + x, color: 0x000000 })
-    });
-};
 
 export default function InteractionCanvas(props) {
     const interactionRef = useRef();
@@ -89,6 +79,6 @@ export default function InteractionCanvas(props) {
         }}
         onMouseDown={function (e) {
             const [x, y] = findXY(e, interactionRef.current);
-            placePixel(x, y)
+            props.onClick(x, y);
         }} />
 }
