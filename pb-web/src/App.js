@@ -59,7 +59,7 @@ function App() {
         </div>
         <div className='position-absolute ms-md-2 mb-md-4 ms-2 mb-2' style={{ zIndex: "3", left: "0", bottom: "0" }}>
           <ButtonGroup>
-            <div className='me-1 pe-4 ps-3 rounded' style={{ backgroundColor: color }} onClick={() => setShowPicker(true)}></div>
+            <div className='me-1 pe-4 ps-3 rounded border border-secondary' style={{ backgroundColor: color }} onClick={() => setShowPicker(true)}></div>
             <Button onClick={() => setShowPicker(true)} className="rounded"><Eyedropper /></Button>
           </ButtonGroup>
         </div>
