@@ -8,14 +8,9 @@ use axum::{
     Extension, Router,
 };
 use std::{net::SocketAddr, sync::Arc};
-use tokio::{
-    sync::broadcast,
-    task,
-    time::{interval, Duration},
-};
+use tokio::sync::broadcast;
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-use utils::compress_canvas;
 
 use services::CanvasService;
 
@@ -24,7 +19,7 @@ pub type Canvas = Vec<u8>;
 pub struct AppState {
     pub canvas_service: CanvasService,
     pub redis_client: redis::Client,
-    pub canvas_stream: broadcast::Sender<Canvas>,
+    pub canvas_stream: broadcast::Sender<StreamPixelData>,
 }
 
 #[derive(serde::Deserialize)]
@@ -33,16 +28,10 @@ pub struct PutPixelData {
     pub color: i32,
 }
 
-async fn canvas_stream_worker(service: CanvasService, tx: broadcast::Sender<Canvas>) {
-    let mut int = interval(Duration::from_secs(1));
-    loop {
-        let res = service.get_canvas().await;
-        if res.is_err() {
-            return;
-        }
-        tx.send(compress_canvas(res.unwrap())).unwrap();
-        int.tick().await;
-    }
+#[derive(serde::Serialize, Clone, Copy, Debug)]
+pub struct StreamPixelData {
+    pub position: i64,
+    pub color: i32,
 }
 
 #[tokio::main]
@@ -57,8 +46,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let redis_client = redis::Client::open("redis://localhost:6379")?;
     let canvas_service = CanvasService::new(redis_client.clone());
     let (tx, _rx) = broadcast::channel(2048);
-
-    task::spawn(canvas_stream_worker(canvas_service.clone(), tx.clone()));
 
     let state = Arc::new(AppState {
         canvas_service: canvas_service.clone(),
@@ -80,7 +67,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .layer(Extension(state));
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 4000));
     tracing::debug!("listening on {}", addr);
     axum::Server::bind(&addr)
         .serve(app.into_make_service())

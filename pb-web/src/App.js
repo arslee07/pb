@@ -10,7 +10,6 @@ import { List, ZoomIn, ZoomOut, Eyedropper } from 'react-bootstrap-icons';
 const zooms = [1, 5, 15, 25, 50];
 
 async function placePixel(x, y, color) {
-  console.log(color);
   await fetch('http://192.168.0.123:4000/pixels', {
     headers: {
       'Accept': 'application/json',
@@ -47,7 +46,7 @@ function App() {
       </div>
       <div>
         <div className='position-absolute ms-md-2 mt-md-2 ms-2 mt-2 mx-auto' style={{ zIndex: "3", left: "0", top: "0" }}>
-          <div class="py-1 px-2 rounded mb-2 bg-primary text-white">({coords.x}; {coords.y}) x{zooms[zoomIndex]}</div>
+          <div className="py-1 px-2 rounded mb-2 bg-primary text-white">({coords.x}; {coords.y}) x{zooms[zoomIndex]}</div>
         </div>
         <div className='position-absolute me-md-4 mb-md-4 me-2 mb-2' style={{ zIndex: "3", right: "0", bottom: "0" }}>
           <ButtonGroup>

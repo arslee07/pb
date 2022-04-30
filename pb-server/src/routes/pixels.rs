@@ -6,7 +6,7 @@ use axum::{
     Extension, Json,
 };
 
-use crate::{utils::compress_canvas, AppState, Canvas, PutPixelData, RouteResult};
+use crate::{utils::compress_canvas, AppState, Canvas, PutPixelData, RouteResult, StreamPixelData};
 
 pub async fn stream_canvas(
     ws: WebSocketUpgrade,
@@ -15,7 +15,11 @@ pub async fn stream_canvas(
     ws.on_upgrade(|mut socket| async move {
         let mut st = state.canvas_stream.subscribe();
         while let Ok(c) = st.recv().await {
-            if socket.send(ws::Message::Binary(c)).await.is_err() {
+            if socket
+                .send(ws::Message::Text(serde_json::to_string(&c).unwrap()))
+                .await
+                .is_err()
+            {
                 return;
             }
         }
@@ -70,6 +74,14 @@ pub async fn put_pixel(
             ))
         }
     };
+
+    state
+        .canvas_stream
+        .send(StreamPixelData {
+            position: payload.position,
+            color: payload.color,
+        })
+        .unwrap();
 
     Ok((StatusCode::ACCEPTED, ()))
 }
