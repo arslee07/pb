@@ -14,17 +14,19 @@ export default function CanvasMovementController(props) {
     
     let cw = 1000 * props.zoom;
     let ch = 1000 * props.zoom;
+        
+    let gap = 32 * props.zoom;
 
     function kbscroll() {
-      let topd = (hold.down * (hold.speed ? 5 : 1)) + (hold.up * -1 * (hold.speed ? 5 : 1))
-      let leftd = (hold.right * (hold.speed ? 5 : 1)) + (hold.left * -1 * (hold.speed ? 5 : 1))
+      let topd = ((hold.down * (hold.speed ? 5 : 2)) + (hold.up * -1 * (hold.speed ? 5 : 2))) * props.zoom;
+      let leftd = ((hold.right * (hold.speed ? 5 : 2)) + (hold.left * -1 * (hold.speed ? 5 : 2))) * props.zoom;
       if (topd !== 0 || leftd !== 0) {
-        let wmin = Math.min(0, (window.innerWidth - cw));
-        let wmax = Math.max(0, (window.innerWidth - cw));
+        let wmin = Math.min(0, window.innerWidth - cw - gap);
+        let wmax = Math.max(gap, window.innerWidth - cw);
         setX(x => clamp(x - leftd, wmin, wmax));
 
-        let hmin = Math.min(0, window.innerHeight - ch);
-        let hmax = Math.max(0, window.innerHeight - ch);
+        let hmin = Math.min(0, window.innerHeight - ch - gap);
+        let hmax = Math.max(gap, window.innerHeight - ch);
         setY(y => clamp(y - topd, hmin, hmax));
       }
       window.requestAnimationFrame(kbscroll);
@@ -62,7 +64,7 @@ export default function CanvasMovementController(props) {
 
   return <div
     style={{
-      transformOrigin: "0 center",
+      transformOrigin: "0 0",
       transform: `translate(${x}px, ${y}px) scale(${props.zoom}, ${props.zoom})`,
     }}>
     {props.children}
