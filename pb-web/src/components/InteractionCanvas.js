@@ -21,50 +21,17 @@ function drawPointer(x, y, imageData, ctx) {
 export default function InteractionCanvas(props) {
     const interactionRef = useRef();
 
-    // FIXME
-    useEffect(() => {
-        // bro what the fuck
-        var wrapper = document.getElementById("paper-wrapper");
 
-        var hold = { left: false, right: false, down: false, up: false, speed: false };
-        function kbscroll() {
-            let topd = (hold.down * 25 * (hold.speed ? 3 : 1)) + (hold.up * -25 * (hold.speed ? 3 : 1))
-            let leftd = (hold.right * 25 * (hold.speed ? 3 : 1)) + (hold.left * -25 * (hold.speed ? 3 : 1))
-            if (topd !== 0 || leftd !== 0) {
-                wrapper.scrollTo(wrapper.scrollLeft + leftd, wrapper.scrollTop + topd);
-            }
-            window.requestAnimationFrame(kbscroll);
-        }
-        window.requestAnimationFrame(kbscroll);
-
-        document.body.onkeydown = function (e) {
-            var code = e.keyCode;
-            if (code === 87 || code === 38) hold.up = true;   // w or up arrow
-            if (code === 65 || code === 37) hold.left = true; // a or left arrow
-            if (code === 83 || code === 40) hold.down = true; // s or down arrow
-            if (code === 68 || code === 39) hold.right = true; // d or right arrow
-            if (code === 16) hold.speed = true;                // shift
-        };
-        document.body.onkeyup = function (e) {
-            var code = e.keyCode;
-            if (code === 87 || code === 38) hold.up = false;
-            if (code === 65 || code === 37) hold.left = false;
-            if (code === 83 || code === 40) hold.down = false;
-            if (code === 68 || code === 39) hold.right = false;
-            if (code === 16) hold.speed = false;
-        };
-    }, []);
+    let classes = `no-highlights position-fixed`
 
     return <canvas
         width={1000}
         height={1000}
         id="interaction-layer"
-        className="no-highlights position-absolute"
+        className={classes}
         ref={interactionRef}
         style={{
             zIndex: "1",
-            transformOrigin: "top left",
-            transform: `scale(${props.zoom}, ${props.zoom})`
         }}
         onMouseMove={function (e) {
             let ctx = interactionRef.current.getContext("2d");

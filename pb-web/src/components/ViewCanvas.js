@@ -1,4 +1,4 @@
-import { React, useEffect, useRef } from 'react';
+import { React, useEffect, useRef, useState } from 'react';
 import { inflate } from 'pako';
 
 function drawView(raw, ctx, imageData) {
@@ -37,7 +37,7 @@ function drawPixel(color, position, ctx, imageData) {
     ctx.putImageData(imageData, x, y);
 }
 
-export default function ViewCanvas(props) {
+export default function ViewCanvas() {
     const ref = useRef();
 
     useEffect(() => {
@@ -64,11 +64,7 @@ export default function ViewCanvas(props) {
         width={1000}
         height={1000}
         id="view-layer"
-        className="no-highlights position-absolute"
-        ref={ref}
-        style={{
-            transformOrigin: "top left",
-            transform: `scale(${props.zoom}, ${props.zoom})`
-        }}>
+        className="no-highlights position-fixed shado"
+        ref={ref}>
     </canvas>;
 }
