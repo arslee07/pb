@@ -1,32 +1,33 @@
-import { React, useEffect, useState } from 'react';
+import { React, useEffect, useState, useRef } from 'react';
 
 export default function CanvasMovementController(props) {
   const [x, setX] = useState(0);
   const [y, setY] = useState(0);
 
+  const ref = useRef();
+
 
   // FIXME
   useEffect(() => {
-    // bro what the fuck
     const clamp = (v, min, max) => Math.max(Math.min(v, max), min);
 
     let hold = { left: false, right: false, down: false, up: false, speed: false };
-    
+
     let cw = 1000 * props.zoom;
     let ch = 1000 * props.zoom;
-        
+
     let gap = 32 * props.zoom;
 
     function kbscroll() {
       let topd = ((hold.down * (hold.speed ? 5 : 2)) + (hold.up * -1 * (hold.speed ? 5 : 2))) * props.zoom;
       let leftd = ((hold.right * (hold.speed ? 5 : 2)) + (hold.left * -1 * (hold.speed ? 5 : 2))) * props.zoom;
       if (topd !== 0 || leftd !== 0) {
-        let wmin = Math.min(0, window.innerWidth - cw - gap);
-        let wmax = Math.max(gap, window.innerWidth - cw);
-        setX(x => clamp(x - leftd, wmin, wmax));
+  let wmin = Math.min(0, window.innerWidth - cw - gap);
+  let wmax = Math.max(gap, window.innerWidth - cw);
+  setX(x => clamp(x - leftd, wmin, wmax));
 
-        let hmin = Math.min(0, window.innerHeight - ch - gap);
-        let hmax = Math.max(gap, window.innerHeight - ch);
+  let hmin = Math.min(0, window.innerHeight - ch - gap);
+  let hmax = Math.max(gap, window.innerHeight - ch);
         setY(y => clamp(y - topd, hmin, hmax));
       }
       window.requestAnimationFrame(kbscroll);
@@ -62,7 +63,69 @@ export default function CanvasMovementController(props) {
     }
   }, [props.zoom]);
 
+
+  useEffect(() => {
+    const clamp = (v, min, max) => Math.max(Math.min(v, max), min);
+
+    let cw = 1000 * props.zoom;
+    let ch = 1000 * props.zoom;
+
+    let gap = 32 * props.zoom;
+
+    let tx, ty = (0, 0);
+
+    const mm = function(e) {
+      let wmin = Math.min(0, window.innerWidth - cw - gap);
+      let wmax = Math.max(gap, window.innerWidth - cw);
+
+      let hmin = Math.min(0, window.innerHeight - ch - gap);
+      let hmax = Math.max(gap, window.innerHeight - ch);
+
+      setX(x => clamp(x + e.movementX, wmin, wmax));
+      setY(y => clamp(y + e.movementY, hmin, hmax));
+    };
+
+    const mu = function() {
+      document.removeEventListener('mousemove', mm);
+      document.removeEventListener('mouseup', mu);
+    };
+
+    const md = function() {
+      document.addEventListener('mousemove', mm);
+      document.addEventListener('mouseup', mu);
+    };
+
+    document.addEventListener('mousedown', md);
+
+    return () => {
+      tx = 0;
+      ty = 0;
+      document.removeEventListener('mouseup', mu);
+      document.removeEventListener('mousemove', mm);
+      document.removeEventListener('mousedown', md);
+    };
+  }, [props.zoom]);
+
+  useEffect(() => {
+    const clamp = (v, min, max) => Math.max(Math.min(v, max), min);
+
+    let cw = 1000 * props.zoom;
+    let ch = 1000 * props.zoom;
+
+    let gap = 32 * props.zoom;
+
+    let wmin = Math.min(0, window.innerWidth - cw - gap);
+    let wmax = Math.max(gap, window.innerWidth - cw);
+
+    let hmin = Math.min(0, window.innerHeight - ch - gap);
+    let hmax = Math.max(gap, window.innerHeight - ch);
+
+    setX(x => clamp(x, wmin, wmax));
+    setY(y => clamp(y, hmin, hmax));
+  }, [props.zoom]);
+
   return <div
+    ref={ref}
     style={{
       transformOrigin: "0 0",
       transform: `translate(${x}px, ${y}px) scale(${props.zoom}, ${props.zoom})`,
