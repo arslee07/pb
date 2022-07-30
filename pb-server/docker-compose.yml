@@ -1,0 +1,20 @@
+version: '3.5'
+
+services:
+  redis:
+    image: redis
+    restart: always
+    ports:
+      - 4001:6379
+    command: redis-server
+    volumes:
+      - ./data/redis:/data
+  
+  api:
+    image: pb-server
+    environment:
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - 4000:4000
+    depends_on:
+      - redis
