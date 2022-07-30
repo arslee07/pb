@@ -47,6 +47,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let canvas_service = CanvasService::new(redis_client.clone());
     let (tx, _rx) = broadcast::channel(2048);
 
+    canvas_service.init().await?;
+
     let state = Arc::new(AppState {
         canvas_service: canvas_service.clone(),
         redis_client,
