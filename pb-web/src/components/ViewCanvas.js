@@ -64,7 +64,7 @@ export default function ViewCanvas() {
         width={1000}
         height={1000}
         id="view-layer"
-        className="no-highlights position-fixed shadow"
+        className="no-highlights shadow"
         ref={ref}>
     </canvas>;
 }
