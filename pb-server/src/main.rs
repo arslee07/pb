@@ -17,9 +17,15 @@ use services::CanvasService;
 pub type RouteResult<T, E> = Result<(StatusCode, T), (StatusCode, E)>;
 pub type Canvas = Vec<u8>;
 pub struct AppState {
+    pub config: Config,
     pub canvas_service: CanvasService,
     pub redis_client: redis::Client,
     pub canvas_stream: broadcast::Sender<StreamPixelData>,
+}
+
+#[derive(serde::Deserialize, Clone, Debug)]
+pub struct Config {
+    pub redis_url: String,
 }
 
 #[derive(serde::Deserialize)]
@@ -43,13 +49,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    let redis_client = redis::Client::open("redis://localhost:6379")?;
+    let config: Config = envy::from_env()?;
+
+    let redis_client = redis::Client::open(config.redis_url.to_owned())?;
     let canvas_service = CanvasService::new(redis_client.clone());
     let (tx, _rx) = broadcast::channel(2048);
 
     canvas_service.init().await?;
 
     let state = Arc::new(AppState {
+        config,
         canvas_service: canvas_service.clone(),
         redis_client,
         canvas_stream: tx,
