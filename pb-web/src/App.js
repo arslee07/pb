@@ -9,7 +9,7 @@ import { HexColorPicker, HexColorInput } from "react-colorful";
 import { List, Eyedropper } from 'react-bootstrap-icons';
 
 async function placePixel(x, y, color) {
-  await fetch('http://192.168.0.123:4000/pixels', {
+  await fetch('https://pb-api.arslee.me/pixels', {
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json'

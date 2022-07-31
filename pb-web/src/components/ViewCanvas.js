@@ -45,11 +45,11 @@ export default function ViewCanvas() {
         let viewImageData = viewCtx.createImageData(1000, 1000);
         let pixelImageData = viewCtx.createImageData(1, 1);
 
-        fetch('http://192.168.0.123:4000/pixels').then((resp) => resp.arrayBuffer()).then((data) => {
+        fetch('https://pb-api.arslee.me/pixels').then((resp) => resp.arrayBuffer()).then((data) => {
             drawView(data, viewCtx, viewImageData);
         });
 
-        let socket = new WebSocket("ws://192.168.0.123:4000/pixels/stream");
+        let socket = new WebSocket("wss://pb-api.arslee.me/pixels/stream");
         socket.onmessage = function (event) {
             let data = JSON.parse(event.data);
             drawPixel(data.color, data.position, viewCtx, pixelImageData);
