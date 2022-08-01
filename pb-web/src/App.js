@@ -43,7 +43,7 @@ function App() {
 
       <div className='position-fixed' style={{ zIndex: "3" }}>
         <div className='position-fixed overflow-hidden ms-md-2 mt-md-2 ms-2 mt-2 mx-auto' style={{ left: "0", top: "0" }}>
-          <div className="py-1 px-2 rounded mb-2 bg-primary text-white">({coords.x}; {coords.y})</div>
+          <div className="py-1 px-2 rounded mb-2 bg-primary text-white">({coords.x-1}; {coords.y-1})</div>
         </div>
         <div className='position-fixed overflow-hidden me-md-2 mb-md-2 me-2 mb-2' style={{ right: "0", bottom: "0" }}>
           <Button><List /></Button>
