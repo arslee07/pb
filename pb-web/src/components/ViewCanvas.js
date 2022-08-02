@@ -1,5 +1,6 @@
 import { React, useEffect, useRef, useState } from 'react';
 import { inflate } from 'pako';
+import ReconnectingWebSocket from 'reconnecting-websocket';
 
 function drawView(raw, ctx, imageData) {
     let compressed = new Uint8ClampedArray(raw);
@@ -45,15 +46,28 @@ export default function ViewCanvas() {
         let viewImageData = viewCtx.createImageData(1000, 1000);
         let pixelImageData = viewCtx.createImageData(1, 1);
 
-        fetch('https://pb-api.arslee.me/pixels').then((resp) => resp.arrayBuffer()).then((data) => {
-            drawView(data, viewCtx, viewImageData);
-        });
-
-        let socket = new WebSocket("wss://pb-api.arslee.me/pixels/stream");
-        socket.onmessage = function (event) {
+        function onMessage(event) {
             let data = JSON.parse(event.data);
             drawPixel(data.color, data.position, viewCtx, pixelImageData);
         }
+
+        let socket = new ReconnectingWebSocket("wss://pb-api.arslee.me/pixels/stream");
+
+        socket.addEventListener('message', (event) => {
+            let data = JSON.parse(event.data);
+            drawPixel(data.color, data.position, viewCtx, pixelImageData);
+        });
+
+        socket.addEventListener('open', (event) => {
+            fetch('https://pb-api.arslee.me/pixels').then((resp) => resp.arrayBuffer()).then((data) => {
+                drawView(data, viewCtx, viewImageData);
+            });
+            console.log('connected');
+        });
+
+        socket.addEventListener('close', (event) => {
+            console.log('disconnected');
+        });
 
         return () => {
             socket.close();
