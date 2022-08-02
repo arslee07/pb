@@ -11,6 +11,7 @@ export default function MovementWrapper(props) {
         centerOnInit
         centerZoomedOut
         doubleClick={{ disabled: true }}
+        panning={{ velocityDisabled: true }}
     >
         {({ zoomIn, zoomOut, ...rest }) => (
             <div id="paper-wrapper">

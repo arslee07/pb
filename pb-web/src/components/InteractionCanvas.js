@@ -41,7 +41,7 @@ export default function InteractionCanvas(props) {
       if (ctx.previousCoords !== undefined && (x !== ctx.previousCoords.x || y !== ctx.previousCoords.y)) {
         ctx.clearRect(ctx.previousCoords.x, ctx.previousCoords.y, 1, 1);
         drawPointer(x, y, imd, ctx);
-        props.onCoordsChanged(x + 1, y + 1);
+        props.onCoordsChanged(x, y);
       }
       ctx.previousCoords = { x, y };
     }}
