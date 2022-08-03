@@ -20,7 +20,7 @@ export default function MovementWrapper(props) {
                     contentClass='p-5'
                     wrapperStyle={{
                         width: "100%",
-                        maxHeight: "100vh",
+                        height: "100vh",
                         imageRendering: "pixelated"
                     }}
                 >
