@@ -12,6 +12,7 @@ services:
   
   api:
     image: pb-server
+    restart: always
     environment:
       - REDIS_URL=redis://redis:6379
     ports:
