@@ -16,11 +16,12 @@ impl UsersService {
 
     pub fn get_user_from_token(&self, token: String) -> Result<User, Box<dyn Error + Sync + Send>> {
         let mut validation = Validation::default();
+        validation.required_spec_claims.remove("exp");
         validation.validate_exp = false;
 
         let claims = decode::<Claims>(
             &token,
-            &DecodingKey::from_secret(self.jwt_secret.as_ref()),
+            &DecodingKey::from_secret(self.jwt_secret.as_bytes()),
             &validation,
         )?
         .claims;
