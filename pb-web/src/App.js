@@ -10,7 +10,7 @@ import { List, Eyedropper } from 'react-bootstrap-icons';
 import { toast, ToastContainer } from 'react-toastify';
 import MenuModal from './modals/MenuModal';
 
-async function placePixel(x, y, color, token) {
+async function placePixel(x, y, color) {
   let res = await fetch('https://pb-api.arslee.me/pixels', {
     headers: {
       'Accept': 'application/json',
