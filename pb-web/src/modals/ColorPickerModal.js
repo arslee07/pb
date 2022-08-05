@@ -1,4 +1,5 @@
 import { Modal, Button } from "react-bootstrap"
+import { HexColorInput, HexColorPicker } from "react-colorful"
 
 export default function ColorPickerModal(props) {
     return <Modal show={props.show} onHide={props.onHide}>

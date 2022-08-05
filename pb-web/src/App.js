@@ -4,11 +4,11 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import ViewCanvas from './components/ViewCanvas';
 import InteractionCanvas from './components/InteractionCanvas';
 import MovementWrapper from './components/MovementWrapper';
-import { Button, ButtonGroup, Modal } from 'react-bootstrap';
-import { HexColorPicker, HexColorInput } from "react-colorful";
+import { Button, ButtonGroup } from 'react-bootstrap';
 import { List, Eyedropper } from 'react-bootstrap-icons';
 import { toast, ToastContainer } from 'react-toastify';
 import MenuModal from './modals/MenuModal';
+import ColorPickerModal from './modals/ColorPickerModal';
 
 async function placePixel(x, y, color) {
   let res = await fetch('https://pb-api.arslee.me/pixels', {
@@ -67,24 +67,8 @@ function App() {
       </div>
 
       <MenuModal show={showModal} onHide={() => { setShowModal(false) }} />
-
-      <Modal show={showPicker} onHide={() => { setShowPicker(false) }}>
-        <Modal.Header closeButton>
-          <Modal.Title>Pick a color</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <HexColorPicker color={color} onChange={(color) => { setColor(color) }} className="w-auto" />
-          <HexColorInput color={color} onChange={setColor} className="w-100 mt-2" />
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="primary" onClick={() => { setShowPicker(false) }}>
-            Close
-          </Button>
-        </Modal.Footer>
-      </Modal>
-
+      <ColorPickerModal show={showPicker} onHide={() => { setShowPicker(false) }} color={color} onChange={setColor} />
     </div >
-
   );
 }
 
