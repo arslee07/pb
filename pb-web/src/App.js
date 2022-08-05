@@ -7,16 +7,23 @@ import MovementWrapper from './components/MovementWrapper';
 import { Button, ButtonGroup, Modal } from 'react-bootstrap';
 import { HexColorPicker, HexColorInput } from "react-colorful";
 import { List, Eyedropper } from 'react-bootstrap-icons';
+import { toast, ToastContainer } from 'react-toastify';
+import MenuModal from './modals/MenuModal';
 
-async function placePixel(x, y, color) {
-  await fetch('https://pb-api.arslee.me/pixels', {
+async function placePixel(x, y, color, token) {
+  let res = await fetch('https://pb-api.arslee.me/pixels', {
     headers: {
       'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'X-Token': JSON.parse(window.localStorage.getItem("token")),
     },
     method: 'PUT',
     body: JSON.stringify({ position: y * 1000 + x, color: color })
   });
+
+  if (res.status === 401) {
+    toast("Failed to place a pixel: invalid or unset token", { type: "error" })
+  }
 };
 
 function colorToNum(color) {
@@ -31,10 +38,13 @@ function App() {
   }, []);
 
   const [showPicker, setShowPicker] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [color, setColor] = useState("#000000");
 
   return (
     <div>
+      <ToastContainer bodyStyle={{ font: "unset" }} autoClose={3000} />
+
       <MovementWrapper>
         <ViewCanvas />
         <InteractionCanvas onCoordsChanged={handleCoordsChange}
@@ -46,7 +56,7 @@ function App() {
           <div className="py-1 px-2 rounded mb-2 bg-primary text-white">({coords.x}; {coords.y})</div>
         </div>
         <div className='position-fixed overflow-hidden me-md-2 mb-md-2 me-2 mb-2' style={{ right: "0", bottom: "0" }}>
-          <Button><List /></Button>
+          <Button onClick={() => setShowModal(true)}><List /></Button>
         </div>
         <div className='position-fixed overflow-hidden ms-md-2 mb-md-2 ms-2 mb-2' style={{ left: "0", bottom: "0" }}>
           <ButtonGroup>
@@ -55,6 +65,8 @@ function App() {
           </ButtonGroup>
         </div>
       </div>
+
+      <MenuModal show={showModal} onHide={() => { setShowModal(false) }} />
 
       <Modal show={showPicker} onHide={() => { setShowPicker(false) }}>
         <Modal.Header closeButton>
@@ -70,7 +82,9 @@ function App() {
           </Button>
         </Modal.Footer>
       </Modal>
+
     </div >
+
   );
 }
 
