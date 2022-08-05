@@ -1,3 +1,4 @@
+pub mod middlewares;
 pub mod models;
 pub mod routes;
 pub mod services;
@@ -5,6 +6,7 @@ pub mod utils;
 
 use axum::{
     http::StatusCode,
+    middleware,
     routing::{get, put},
     Extension, Router,
 };
@@ -80,7 +82,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let app = Router::new()
         .route("/", get(routes::root))
         .route("/pixels", get(routes::pixels::get_canvas))
-        .route("/pixels", put(routes::pixels::put_pixel))
+        .route(
+            "/pixels",
+            put(routes::pixels::put_pixel)
+                .layer(middleware::from_fn(middlewares::allow_authenticated_only)),
+        )
         .route("/pixels/stream", get(routes::pixels::stream_canvas))
         .layer(TraceLayer::new_for_http())
         .layer(
