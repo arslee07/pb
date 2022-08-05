@@ -38,7 +38,7 @@ function App() {
   }, []);
 
   const [showPicker, setShowPicker] = useState(false);
-  const [showModal, setShowModal] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const [color, setColor] = useState("#000000");
 
   return (
@@ -56,7 +56,7 @@ function App() {
           <div className="py-1 px-2 rounded mb-2 bg-primary text-white">({coords.x}; {coords.y})</div>
         </div>
         <div className='position-fixed overflow-hidden me-md-2 mb-md-2 me-2 mb-2' style={{ right: "0", bottom: "0" }}>
-          <Button onClick={() => setShowModal(true)}><List /></Button>
+          <Button onClick={() => setShowMenu(true)}><List /></Button>
         </div>
         <div className='position-fixed overflow-hidden ms-md-2 mb-md-2 ms-2 mb-2' style={{ left: "0", bottom: "0" }}>
           <ButtonGroup>
@@ -66,7 +66,7 @@ function App() {
         </div>
       </div>
 
-      <MenuModal show={showModal} onHide={() => { setShowModal(false) }} />
+      <MenuModal show={showMenu} onHide={() => { setShowMenu(false) }} />
       <ColorPickerModal show={showPicker} onHide={() => { setShowPicker(false) }} color={color} onChange={setColor} />
     </div >
   );
