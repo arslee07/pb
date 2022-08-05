@@ -32,7 +32,7 @@ export default function InteractionCanvas(props) {
     style={{
       zIndex: "1",
     }}
-    onMouseMove={function(e) {
+    onMouseMove={function (e) {
       if (Math.abs(e.movementX) > 0 && Math.abs(e.movementY) > 0) setDragging(true);
 
       let ctx = interactionRef.current.getContext("2d");
@@ -45,10 +45,10 @@ export default function InteractionCanvas(props) {
       }
       ctx.previousCoords = { x, y };
     }}
-    onMouseDown={function(e) {
+    onMouseDown={function (e) {
       setDragging(false);
     }}
-    onMouseUp={function(e) {
+    onMouseUp={function (e) {
       if (!dragging) {
         const [x, y] = findXY(e, interactionRef.current);
         props.onClick(x, y);
