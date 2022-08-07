@@ -51,7 +51,7 @@ export default function ViewCanvas() {
             drawPixel(data.color, data.position, viewCtx, pixelImageData);
         }
 
-        let socket = new ReconnectingWebSocket("wss://pb-api.arslee.me/pixels/stream");
+        let socket = new ReconnectingWebSocket(`${process.env.REACT_APP_WS_BASE_URL}/pixels/stream`);
 
         socket.addEventListener('message', (event) => {
             let data = JSON.parse(event.data);
@@ -59,7 +59,7 @@ export default function ViewCanvas() {
         });
 
         socket.addEventListener('open', (event) => {
-            fetch('https://pb-api.arslee.me/pixels').then((resp) => resp.arrayBuffer()).then((data) => {
+            fetch(`${process.env.REACT_APP_API_BASE_URL}/pixels`).then((resp) => resp.arrayBuffer()).then((data) => {
                 drawView(data, viewCtx, viewImageData);
             });
             console.log('connected');

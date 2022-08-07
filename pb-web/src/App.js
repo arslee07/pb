@@ -11,7 +11,7 @@ import MenuModal from './modals/MenuModal';
 import ColorPickerModal from './modals/ColorPickerModal';
 
 async function placePixel(x, y, color) {
-  let res = await fetch('https://pb-api.arslee.me/pixels', {
+  let res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/pixels`, {
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
