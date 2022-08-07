@@ -1,4 +1,4 @@
-import { React, useEffect, useRef, useState } from 'react';
+import { React, useEffect, useRef } from 'react';
 import { inflate } from 'pako';
 import ReconnectingWebSocket from 'reconnecting-websocket';
 
@@ -45,11 +45,6 @@ export default function ViewCanvas() {
         let viewCtx = ref.current.getContext("2d", { alpha: false });
         let viewImageData = viewCtx.createImageData(1000, 1000);
         let pixelImageData = viewCtx.createImageData(1, 1);
-
-        function onMessage(event) {
-            let data = JSON.parse(event.data);
-            drawPixel(data.color, data.position, viewCtx, pixelImageData);
-        }
 
         let socket = new ReconnectingWebSocket(`${process.env.REACT_APP_WS_BASE_URL}/pixels/stream`);
 

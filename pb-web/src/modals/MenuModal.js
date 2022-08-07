@@ -1,4 +1,4 @@
-import { Modal, Button, Form } from "react-bootstrap"
+import { Modal, Form } from "react-bootstrap"
 import useLocalStorage from "../hooks/UseLocalStorage"
 
 export default function MenuModal(props) {
