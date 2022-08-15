@@ -16,6 +16,6 @@ jobs:
       - name: Build and test
         working-directory: ./pb-web
         run: |
-          npm ci --ignore-scripts --passWithNoTests
+          npm ci --ignore-scripts
           npm run build --if-present
-          npm test --passWithNoTests
+          npm test --ignore-scripts --passWithNoTests
