@@ -20,7 +20,7 @@ use services::CanvasService;
 
 use crate::services::UsersService;
 
-pub type RouteResult<T, E> = Result<(StatusCode, T), (StatusCode, E)>;
+pub type RouteResult<T> = Result<(StatusCode, T), crate::models::Error>;
 pub type Canvas = Vec<u8>;
 pub struct AppState {
     pub config: Config,

@@ -6,7 +6,10 @@ use axum::{
     Extension, Json,
 };
 
-use crate::{utils::compress_canvas, AppState, Canvas, PutPixelData, RouteResult, StreamPixelData};
+use crate::{
+    models::Error, utils::compress_canvas, AppState, Canvas, PutPixelData, RouteResult,
+    StreamPixelData,
+};
 
 pub async fn stream_canvas(
     ws: WebSocketUpgrade,
@@ -26,16 +29,14 @@ pub async fn stream_canvas(
     })
 }
 
-pub async fn get_canvas(Extension(state): Extension<Arc<AppState>>) -> RouteResult<Canvas, String> {
-    let canvas = match state.canvas_service.get_canvas().await {
-        Ok(res) => res,
-        Err(_) => {
-            return Err((
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Get canvas error".to_string(),
-            ))
-        }
-    };
+pub async fn get_canvas(Extension(state): Extension<Arc<AppState>>) -> RouteResult<Canvas> {
+    let canvas = state
+        .canvas_service
+        .get_canvas()
+        .await
+        .map_err(|err| Error::Internal {
+            message: Some(err.to_string()),
+        })?;
 
     Ok((StatusCode::OK, compress_canvas(canvas)))
 }
@@ -43,37 +44,25 @@ pub async fn get_canvas(Extension(state): Extension<Arc<AppState>>) -> RouteResu
 pub async fn put_pixel(
     Json(payload): Json<PutPixelData>,
     Extension(state): Extension<Arc<AppState>>,
-) -> RouteResult<(), String> {
+) -> RouteResult<()> {
     // Verify position
     if !(payload.position >= 0 && payload.position < 1_000_000) {
-        return Err((
-            StatusCode::BAD_REQUEST,
-            "Position should be >= 0 and < 10000000".to_string(),
-        ));
+        return Err(Error::InvalidPosition { max: 1_000_000 });
     }
 
     // Verify color
     if !(payload.color >= 0x000000 && payload.color <= 0xFFFFFF) {
-        return Err((
-            StatusCode::BAD_REQUEST,
-            "Color should be >= 0x000000 and <= 0xFFFFFF".to_string(),
-        ));
+        return Err(Error::InvalidColor);
     }
 
     // Put a pixel
-    match state
+    state
         .canvas_service
         .put_pixel(payload.position, payload.color)
         .await
-    {
-        Ok(_) => (),
-        Err(err) => {
-            return Err((
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Failed to put a pixel: ".to_owned() + &err.to_string(),
-            ))
-        }
-    };
+        .map_err(|err| Error::Internal {
+            message: Some(err.to_string()),
+        })?;
 
     state
         .canvas_stream
