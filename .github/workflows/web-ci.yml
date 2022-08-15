@@ -14,6 +14,7 @@ jobs:
           node-version: latest
 
       - name: Build and test
+        working-directory: ./pb-web
         run: |
           npm ci
           npm run build --if-present
