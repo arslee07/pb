@@ -1,6 +1,6 @@
 name: Build and test (frontend)
 
-on: [ push, pull_request ]
+on: [ push ]
 
 jobs:
   test:
@@ -16,6 +16,6 @@ jobs:
       - name: Build and test
         working-directory: ./pb-web
         run: |
-          npm ci --ignore-scripts
+          npm ci
           npm run build --if-present
-          npm test --ignore-scripts --passWithNoTests
+          npm test
