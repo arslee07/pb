@@ -8,15 +8,11 @@ use crate::{
 };
 
 pub async fn cooldown<B>(req: Request<B>, next: Next<B>) -> impl IntoResponse {
-    // get a service and a user from request extension
-    let service = req
-        .extensions()
-        .get::<Arc<AppState>>()
-        .unwrap()
-        .cooldown_service
-        .clone();
-
-    let user = req.extensions().get::<User>().unwrap();
+    let ext = req.extensions();
+    let user = ext.get::<User>().unwrap();
+    let state = ext.get::<Arc<AppState>>().unwrap();
+    let service = state.cooldown_service.clone();
+    let config = state.config.clone();
 
     let cd = service
         .get_cooldown(user.id)
@@ -33,7 +29,7 @@ pub async fn cooldown<B>(req: Request<B>, next: Next<B>) -> impl IntoResponse {
         // else set a new cooldown and process request
         None => {
             service
-                .set_cooldown(user.id, Duration::from_secs(30))
+                .set_cooldown(user.id, Duration::from_secs(config.cooldown_duration))
                 .await
                 .map_err(|err| Error::Internal {
                     message: Some(err.to_string()),

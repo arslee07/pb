@@ -33,6 +33,7 @@ pub struct AppState {
 pub struct Config {
     pub redis_url: String,
     pub jwt_secret: String,
+    pub cooldown_duration: u64,
 }
 
 #[derive(Debug, Deserialize)]
