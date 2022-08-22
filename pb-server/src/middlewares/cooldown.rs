@@ -14,6 +14,12 @@ pub async fn cooldown<B>(req: Request<B>, next: Next<B>) -> impl IntoResponse {
     let service = state.cooldown_service.clone();
     let config = state.config.clone();
 
+    // skip all the stuff if there's no cooldown
+    // to prevent unwanted overhead
+    if config.cooldown_duration == 0 {
+        return Ok(next.run(req).await);
+    }
+
     let cd = service
         .get_cooldown(user.id)
         .await
