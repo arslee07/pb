@@ -20,9 +20,15 @@ async function placePixel(x, y, color) {
     method: 'PUT',
     body: JSON.stringify({ position: y * 1000 + x, color: color })
   });
+  
+  let b = await res.json();
 
   if (res.status === 401) {
     toast("Failed to place a pixel: invalid or unset token", { type: "error" })
+  }
+  
+  if (res.status === 429) {
+    toast(`You are in a cooldown! Please wait ${b.time_left} seconds`, { type: "error" })
   }
 };
 

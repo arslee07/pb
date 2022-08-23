@@ -16,24 +16,24 @@ use tokio::sync::broadcast;
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use services::CanvasService;
-
-use crate::services::UsersService;
+use services::{CanvasService, CooldownService, UsersService};
 
 pub type RouteResult<T> = Result<(StatusCode, T), crate::models::Error>;
 pub type Canvas = Vec<u8>;
 pub struct AppState {
     pub config: Config,
     pub canvas_service: CanvasService,
+    pub cooldown_service: CooldownService,
+    pub users_service: UsersService,
     pub redis_client: redis::Client,
     pub canvas_stream: broadcast::Sender<StreamPixelData>,
-    pub users_service: UsersService,
 }
 
 #[derive(Deserialize, Clone, Debug)]
 pub struct Config {
     pub redis_url: String,
     pub jwt_secret: String,
+    pub cooldown_duration: u64,
 }
 
 #[derive(Debug, Deserialize)]
@@ -67,6 +67,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let redis_client = redis::Client::open(config.redis_url.to_owned())?;
     let canvas_service = CanvasService::new(redis_client.clone());
     let users_service = UsersService::new(config.jwt_secret.clone());
+    let cooldown_service = CooldownService::new(redis_client.clone());
     let (tx, _rx) = broadcast::channel(2048);
 
     canvas_service.init().await?;
@@ -75,6 +76,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         config,
         canvas_service: canvas_service.clone(),
         users_service,
+        cooldown_service,
         redis_client,
         canvas_stream: tx,
     });
@@ -85,6 +87,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route(
             "/pixels",
             put(routes::pixels::put_pixel)
+                .layer(middleware::from_fn(middlewares::cooldown))
                 .layer(middleware::from_fn(middlewares::allow_authenticated_only)),
         )
         .route("/pixels/stream", get(routes::pixels::stream_canvas))

@@ -4,7 +4,7 @@ use axum::{http::Request, middleware::Next, response::IntoResponse};
 
 use crate::{models::Error, AppState};
 
-pub async fn allow_authenticated_only<B>(req: Request<B>, next: Next<B>) -> impl IntoResponse {
+pub async fn allow_authenticated_only<B>(mut req: Request<B>, next: Next<B>) -> impl IntoResponse {
     // get token from request extension
     let service = req
         .extensions()
@@ -21,7 +21,8 @@ pub async fn allow_authenticated_only<B>(req: Request<B>, next: Next<B>) -> impl
         .ok_or(Error::Unauthenticated)?;
 
     // verify token
-    if service.get_user_from_token(token.to_string()).is_ok() {
+    if let Ok(user) = service.get_user_from_token(token.to_string()) {
+        req.extensions_mut().insert(user);
         Ok(next.run(req).await)
     } else {
         Err(Error::Unauthenticated)
